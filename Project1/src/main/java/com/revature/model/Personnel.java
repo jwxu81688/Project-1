@@ -4,7 +4,7 @@ public class Personnel {
 	
 	private String username;
 	private String password;
-	private String role = "Employee";
+	private String role;
 	
 	public Personnel() {
 		super();
@@ -43,6 +43,6 @@ public class Personnel {
 	
 	@Override
 	public String toString() {
-		return "Personnel [username=" + username + ", password=(protected), role=" + role + "]";
+		return "Personnel [username=" + username + ", password=" + password + ", role=" + role + "]";
 	}
 }
