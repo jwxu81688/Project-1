@@ -10,6 +10,12 @@ public class Personnel {
 		super();
 	}
 	
+	public Personnel(String username, String password) {
+		super();
+		this.username = username;
+		this.password = password;
+	}
+	
 	public Personnel(String username, String password, String role) {
 		super();
 		this.username = username;

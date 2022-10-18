@@ -3,22 +3,21 @@ package com.revature.model;
 public class Ticket {
 
 	private String userID;
-	private String ticketID;
+	private int ticketID;
 	private float amount;
 	private String description;
-	private String status;
+	private String status = "Pending";
 	
 	public Ticket() {
 		super();
 	}
 	
-	public Ticket(String userID, String ticketID, float amount, String description, String status) {
+	public Ticket(String userID, int ticketID, float amount, String description) {
 		super();
 		this.userID = userID;
 		this.ticketID = ticketID;
 		this.amount = amount;
 		this.description = description;
-		this.status = status;
 	}
 	
 	public String getUserID() {
@@ -29,11 +28,11 @@ public class Ticket {
 		this.userID = userID;
 	}
 	
-	public String getTicketID() {
+	public int getTicketID() {
 		return ticketID;
 	}
 	
-	public void setTicketID(String ticketID) {
+	public void setTicketID(int ticketID) {
 		this.ticketID = ticketID;
 	}
 	
@@ -71,6 +70,6 @@ public class Ticket {
 	
 	@Override
 	public String toString() {
-		return "Ticket [amount=" + amount + ", description=" + description + ", status=" + status + "]";
+		return "Ticket [userID =" + userID + ", ticketID=" + ticketID + "amount=" + amount + ", description=" + description + ", status=" + status + "]";
 	}
 }
