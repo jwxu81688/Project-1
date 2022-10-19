@@ -1,5 +1,7 @@
 package com.revature;
 
+import java.util.List;
+
 //import java.util.HashSet;
 //import java.util.Set;
 
@@ -10,7 +12,7 @@ import com.revature.model.Ticket;
 import com.revature.repository.Database;
 
 import io.javalin.Javalin;
-//import io.javalin.http.Context;
+
 
 public class Driver {
 
@@ -18,62 +20,152 @@ public class Driver {
 		
 		Javalin app = Javalin.create().start(8000);
 		Database database = new Database();
-		boolean login = false;
-		/*
-		app.before(ctx -> {
-			System.out.println("This happens before the http requests make it to their final destination.");
-		});
 		
-		app.get("/personnel/{username}", (Context ctx) -> {
-			Set<Personnel> users = new HashSet<>();
-			Personnel user1 = new Personnel("jwxu", "July2502", "Employee");
-			Personnel user2 = new Personnel("pdcf", "June7497", "Employee");
-			Personnel user3 = new Personnel("Ross", "password", "Manager");
+		app.post("/login", ctx -> {
+			String username = ctx.formParam("username");
+			String password = ctx.formParam("password");
 			
-			users.add(user1);
-			users.add(user2);
-			users.add(user3);
-			
-			Personnel selectedUser = null;
-			
-			for(Personnel p : users) {
-				if(p.getUsername().equals(String.valueOf(ctx.pathParam("username")))) selectedUser = p;
+			if(database.login(username, password)) {
+				ctx.cookieStore().set("username", username);
+				ctx.result("Successful Login");
+				ctx.status(HttpStatus.OK_200);
+			}else {
+				ctx.result("Incorrect Username or Password, or Unregistered");
 			}
-			
-			ctx.json(selectedUser);
 		});
 		
-		app.post("/new-user", ctx -> {
-			Personnel receivedUser = ctx.bodyAsClass(Personnel.class);
-			System.out.println(receivedUser);
-			ctx.status(HttpStatus.CREATED_201);
-		});
-		*/
-		
-		app.post("/login/{username}/{password}", ctx -> {
-			Personnel selectedUser = null;
-			//Get users from the Personnel table
-			//login = true;
-			ctx.json(selectedUser);
+		app.get("/logout", ctx -> {
+			String username = ctx.cookieStore().get("username");
+			ctx.cookieStore().clear();
+			if(username == null) {
+				ctx.result("Not Logged In");
+			}else {
+				ctx.result(username + " Successfully Logged Out");
+			}
 		});
 		
 		app.post("/register", ctx -> {
 			Personnel receivedUser = ctx.bodyAsClass(Personnel.class);
-			System.out.println(receivedUser);
-			//Put the receivedUser into the repository of users
-			database.register(receivedUser);
-			ctx.status(HttpStatus.CREATED_201);
+			int check = database.checkRepo(receivedUser);
+			if(check == 0) {
+				database.register(receivedUser);
+				ctx.result("New User Registered");
+				ctx.status(HttpStatus.CREATED_201);
+			}else if(check == 1) {
+				ctx.result("Username Already Registered");
+				ctx.status(HttpStatus.BAD_REQUEST_400);
+			}else if(check == 2) {
+				ctx.result("Empty Username and/or Password");
+				ctx.status(HttpStatus.BAD_REQUEST_400);
+			}else {
+				ctx.result("Role Is Neither Exactly 'Employee' Nor 'Manager'");
+				ctx.status(HttpStatus.BAD_REQUEST_400);
+			}
 		});
 		
 		app.post("/submit", ctx -> {
-			if(login) {
+			String username = ctx.cookieStore().get("username");
+			if(username != null) {
 				Ticket receivedTicket = ctx.bodyAsClass(Ticket.class);
-				System.out.println(receivedTicket);
-				//Put the receivedTicket into the repository of tickets
-				database.submit(receivedTicket);
-				ctx.status(HttpStatus.CREATED_201);
+				int check = database.checkRequest(receivedTicket);
+				if(check == 0) {
+					database.submit(username, receivedTicket);
+					ctx.result("New Ticket Submitted");
+					ctx.status(HttpStatus.CREATED_201);
+				}else if(check > 0) {
+					ctx.result("Invalid Amount");
+					ctx.status(HttpStatus.BAD_REQUEST_400);
+				}else {
+					ctx.result("Invalid Description");
+					ctx.status(HttpStatus.BAD_REQUEST_400);
+				}
 			}else {
-				System.out.println("Not logged in");
+				ctx.result("Not Logged In");
+				ctx.status(HttpStatus.UNAUTHORIZED_401);
+			}
+		});
+		
+		app.get("/pending", ctx -> {
+			String username = ctx.cookieStore().get("username");
+			if(username != null) {
+				boolean manager = database.checkManager(username);
+				if(manager) {
+					List<Ticket> pendings = database.showPending();
+					ctx.result(pendings.toString());
+					ctx.status(HttpStatus.OK_200);
+				}else {
+					ctx.result("Invalid Role");
+					ctx.status(HttpStatus.UNAUTHORIZED_401);
+				}
+			}else {
+				ctx.result("Not Logged In");
+				ctx.status(HttpStatus.UNAUTHORIZED_401);
+			}
+		});
+		
+		app.get("/approve/{id}", ctx -> {
+			String username = ctx.cookieStore().get("username");
+			if(username != null) {
+				boolean manager = database.checkManager(username);
+				if(manager) {
+					int ticketID = Integer.parseInt(ctx.pathParam("id"));
+					int updated = database.approve(ticketID);
+					if(updated > 0) {
+						ctx.result("Successfully Approved Ticket");
+						ctx.status(HttpStatus.OK_200);
+					}else {
+						ctx.result("Ticket Already Processed");
+						ctx.status(HttpStatus.NOT_MODIFIED_304);
+					}
+				}else {
+					ctx.result("Invalid Role");
+					ctx.status(HttpStatus.UNAUTHORIZED_401);
+				}
+			}else {
+				ctx.result("Not Logged In");
+				ctx.status(HttpStatus.UNAUTHORIZED_401);
+			}
+		});
+		
+		app.get("/deny/{id}", ctx -> {
+			String username = ctx.cookieStore().get("username");
+			if(username != null) {
+				boolean manager = database.checkManager(username);
+				if(manager) {
+					int ticketID = Integer.parseInt(ctx.pathParam("id"));
+					int updated = database.deny(ticketID);
+					if(updated > 0) {
+						ctx.result("Successfully Denied Ticket");
+						ctx.status(HttpStatus.OK_200);
+					}else {
+						ctx.result("Ticket Already Processed");
+						ctx.status(HttpStatus.NOT_MODIFIED_304);
+					}
+				}else {
+					ctx.result("Invalid Role");
+					ctx.status(HttpStatus.UNAUTHORIZED_401);
+				}
+			}else {
+				ctx.result("Not Logged In");
+				ctx.status(HttpStatus.UNAUTHORIZED_401);
+			}
+		});
+		
+		app.get("/view", ctx -> {
+			String username = ctx.cookieStore().get("username");
+			if(username != null) {
+				boolean employee = database.checkEmployee(username);
+				if(employee) {
+					List<Ticket> processed = database.showProcessed(username);
+					ctx.result(processed.toString());
+					ctx.status(HttpStatus.OK_200);
+				}else {
+					ctx.result("Invalid Role");
+					ctx.status(HttpStatus.UNAUTHORIZED_401);
+				}
+			}else {
+				ctx.result("Not Logged In");
+				ctx.status(HttpStatus.UNAUTHORIZED_401);
 			}
 		});
 		

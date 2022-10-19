@@ -4,7 +4,7 @@ public class Ticket {
 
 	private String userID;
 	private int ticketID;
-	private float amount;
+	private float amount = 0.00f;
 	private String description;
 	private String status = "Pending";
 	
@@ -18,6 +18,15 @@ public class Ticket {
 		this.ticketID = ticketID;
 		this.amount = amount;
 		this.description = description;
+	}
+	
+	public Ticket(String userID, int ticketID, float amount, String description, String status) {
+		super();
+		this.userID = userID;
+		this.ticketID = ticketID;
+		this.amount = amount;
+		this.description = description;
+		this.status = status;
 	}
 	
 	public String getUserID() {
@@ -60,16 +69,8 @@ public class Ticket {
 		this.status = status;
 	}
 	
-	public void changeStatus() {
-		/*if() {
-			this.status = "Approved";
-		}else if() {
-			this.status = "Denied";
-		}*/
-	}
-	
 	@Override
 	public String toString() {
-		return "Ticket [userID =" + userID + ", ticketID=" + ticketID + "amount=" + amount + ", description=" + description + ", status=" + status + "]";
+		return "Ticket [userID =" + userID + ", ticketID=" + ticketID + ", amount=" + amount + ", description=" + description + ", status=" + status + "]\n";
 	}
 }
