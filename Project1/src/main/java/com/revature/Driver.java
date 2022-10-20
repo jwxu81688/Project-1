@@ -27,7 +27,7 @@ public class Driver {
 			
 			if(database.login(username, password)) {
 				ctx.cookieStore().set("username", username);
-				ctx.result("Successful Login");
+				ctx.result("Successful Login: " + username);
 				ctx.status(HttpStatus.OK_200);
 			}else {
 				ctx.result("Incorrect Username or Password, or Unregistered");
@@ -49,7 +49,7 @@ public class Driver {
 			int check = database.checkRepo(receivedUser);
 			if(check == 0) {
 				database.register(receivedUser);
-				ctx.result("New User Registered");
+				ctx.result("New Account Registered");
 				ctx.status(HttpStatus.CREATED_201);
 			}else if(check == 1) {
 				ctx.result("Username Already Registered");
@@ -72,7 +72,7 @@ public class Driver {
 					int check = database.checkRequest(receivedTicket);
 					if(check == 0) {
 						database.submit(username, receivedTicket);
-						ctx.result("New Ticket Submitted");
+						ctx.result("New Ticket for " + username + " Submitted");
 						ctx.status(HttpStatus.CREATED_201);
 					}else if(check > 0) {
 						ctx.result("Invalid Amount");
@@ -82,7 +82,7 @@ public class Driver {
 						ctx.status(HttpStatus.BAD_REQUEST_400);
 					}
 				}else {
-					ctx.result("Invalid Role");
+					ctx.result("Invalid Role: Need Employee Role");
 					ctx.status(HttpStatus.UNAUTHORIZED_401);
 				}
 			}else {
@@ -100,7 +100,7 @@ public class Driver {
 					ctx.result(pendings.toString());
 					ctx.status(HttpStatus.OK_200);
 				}else {
-					ctx.result("Invalid Role");
+					ctx.result("Invalid Role: Need Manager Role");
 					ctx.status(HttpStatus.UNAUTHORIZED_401);
 				}
 			}else {
@@ -124,7 +124,7 @@ public class Driver {
 						ctx.status(HttpStatus.OK_200);
 					}
 				}else {
-					ctx.result("Invalid Role");
+					ctx.result("Invalid Role: Need Manager Role");
 					ctx.status(HttpStatus.UNAUTHORIZED_401);
 				}
 			}else {
@@ -148,7 +148,7 @@ public class Driver {
 						ctx.status(HttpStatus.OK_200);
 					}
 				}else {
-					ctx.result("Invalid Role");
+					ctx.result("Invalid Role: Need Manager Role");
 					ctx.status(HttpStatus.UNAUTHORIZED_401);
 				}
 			}else {
@@ -166,7 +166,7 @@ public class Driver {
 					ctx.result(processed.toString());
 					ctx.status(HttpStatus.OK_200);
 				}else {
-					ctx.result("Invalid Role");
+					ctx.result("Invalid Role: Need Employee Role");
 					ctx.status(HttpStatus.UNAUTHORIZED_401);
 				}
 			}else {
