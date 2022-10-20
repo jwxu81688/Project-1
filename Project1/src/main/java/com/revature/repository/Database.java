@@ -194,6 +194,7 @@ public class Database {
 			stmt = conn.prepareStatement(SQL);
 			stmt.setInt(1, ticketID);
 			update = stmt.executeUpdate();
+			//System.out.println(update);
 		}catch(SQLException e) {
 			e.printStackTrace();
 		}finally {

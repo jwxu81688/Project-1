@@ -66,18 +66,24 @@ public class Driver {
 		app.post("/submit", ctx -> {
 			String username = ctx.cookieStore().get("username");
 			if(username != null) {
-				Ticket receivedTicket = ctx.bodyAsClass(Ticket.class);
-				int check = database.checkRequest(receivedTicket);
-				if(check == 0) {
-					database.submit(username, receivedTicket);
-					ctx.result("New Ticket Submitted");
-					ctx.status(HttpStatus.CREATED_201);
-				}else if(check > 0) {
-					ctx.result("Invalid Amount");
-					ctx.status(HttpStatus.BAD_REQUEST_400);
+				boolean employee = database.checkEmployee(username);
+				if(employee) {
+					Ticket receivedTicket = ctx.bodyAsClass(Ticket.class);
+					int check = database.checkRequest(receivedTicket);
+					if(check == 0) {
+						database.submit(username, receivedTicket);
+						ctx.result("New Ticket Submitted");
+						ctx.status(HttpStatus.CREATED_201);
+					}else if(check > 0) {
+						ctx.result("Invalid Amount");
+						ctx.status(HttpStatus.BAD_REQUEST_400);
+					}else {
+						ctx.result("Invalid Description");
+						ctx.status(HttpStatus.BAD_REQUEST_400);
+					}
 				}else {
-					ctx.result("Invalid Description");
-					ctx.status(HttpStatus.BAD_REQUEST_400);
+					ctx.result("Invalid Role");
+					ctx.status(HttpStatus.UNAUTHORIZED_401);
 				}
 			}else {
 				ctx.result("Not Logged In");
@@ -115,7 +121,7 @@ public class Driver {
 						ctx.status(HttpStatus.OK_200);
 					}else {
 						ctx.result("Ticket Already Processed");
-						ctx.status(HttpStatus.NOT_MODIFIED_304);
+						ctx.status(HttpStatus.OK_200);
 					}
 				}else {
 					ctx.result("Invalid Role");
@@ -139,7 +145,7 @@ public class Driver {
 						ctx.status(HttpStatus.OK_200);
 					}else {
 						ctx.result("Ticket Already Processed");
-						ctx.status(HttpStatus.NOT_MODIFIED_304);
+						ctx.status(HttpStatus.OK_200);
 					}
 				}else {
 					ctx.result("Invalid Role");
